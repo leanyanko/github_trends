@@ -1,5 +1,6 @@
-.idea
 .idea/
-target
 target/
-sample_commits000000000000.json
+aws
+/src/main/java/com/mycompany/app/db/db_remote
+/src/main/java/com/mycompany/app/db/JDBCConnection.java
+/my-app.iml
