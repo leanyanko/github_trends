@@ -28,8 +28,7 @@ public class JDBCConnect {
 
         System.out.println("INSIDE CONNECT");
         Class.forName("org.postgresql.Driver");
-        try (Connection conn = DriverManager.getConnection( "jdbc:postgresql://database-4.cpeacve2qepp.us-east-1.rds.amazonaws.com:5432/forgit",
-                 "writer", "postgres098")) {
+        try (Connection conn = DriverManager.getConnection( )) {
 
             if (conn != null) {
                 System.out.println("Connected to the database!");

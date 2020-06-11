@@ -14,36 +14,12 @@ import java.util.*;
 public class LastCommit implements Serializable {
     Map<String, Date> lastUpdated;
 
-    private Date lastDate(Iterable<Date> dates) {
-
-        Date maxD = null;
-        Iterator<Date> iterator = dates.iterator();
-        while (maxD == null && iterator.hasNext()) {
-            maxD = dates.iterator().next();
-        }
-
-        while (iterator.hasNext()) {
-            Date d = iterator.next();
-            if (d == null) continue;
-            if (maxD.compareTo(d) < 0) {
-                maxD = d;
-            }
-        }
-        return maxD;
-    }
-
-
     public void process (JavaRDD<String> file) {
         JavaRDD<String> commits = file.flatMap(s -> Arrays.asList(s.split("\"commit\"")).iterator());
 
         JavaPairRDD<String, Date> lastUpd = commits.mapToPair(commit -> createTuple(commit));
         JavaPairRDD<String, Date> filtered = lastUpd.filter(pair -> pair._1() != null && pair._2() != null);
-//        JavaPairRDD<String,Iterable<Date>> grouped = lastUpd.groupByKey();
-//        JavaPairRDD<String,Date> lastC = grouped.mapToPair(tuple -> new Tuple2<>(tuple._1(), new Date()));
-//        JavaPairRDD<String,Date> lastC = grouped.mapToPair(tuple -> new Tuple2<>(tuple._1(), lastDate(tuple._2())));
         JavaPairRDD<String, Date> dates = filtered.reduceByKey((Date d1, Date d2) -> (d1.compareTo(d2) > 0 ? d1 : d2));
-//        List<Tuple2<String, Date>> output = lastUpd.collect();
-//        List<Tuple2<String, Iterable<Date>>> output = grouped.collect();
         List<Tuple2<String, Date>> output = dates.collect();
 
         for (Tuple2<?, ?> tuple : output) {
