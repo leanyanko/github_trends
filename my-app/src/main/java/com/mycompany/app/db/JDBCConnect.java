@@ -24,11 +24,11 @@ public class JDBCConnect {
         }
         return con;
     }
-    public void connect (String filename) throws Exception {
+    public void connect (String credentials) throws Exception {
 
-        System.out.println("INSIDE CONNECT");
+        String[] c = credentials.split(" ");
         Class.forName("org.postgresql.Driver");
-        try (Connection conn = DriverManager.getConnection( )) {
+        try (Connection conn = DriverManager.getConnection( c[0], c[1], c[2])) {
 
             if (conn != null) {
                 System.out.println("Connected to the database!");

@@ -29,29 +29,7 @@ public class App  {
             System.exit(1);
         }
 
-
-
-//        String[] db_key = credentials.split(" ");
-
         SparkConf sparkConf = new SparkConf().setAppName("App");
-
-//        try {
-//            LC_DAO = new PostgresDao(credentials);
-//            System.out.println("trying");
-//            long millis=System.currentTimeMillis();
-//            System.out.println("creating l");
-//            LastC l = new LastC("init", new java.sql.Date(millis));
-//            System.out.println("l created, saving to db " + l);
-//            System.out.println("here is dao " + LC_DAO);
-//            LC_DAO.save(l).ifPresent(l::setId);
-//
-//            LC_DAO.getAll().forEach(System.out::println);
-//            l.setRepo("new");
-//            LC_DAO.update(l);
-//            LC_DAO.getAll().forEach(System.out::println);
-//        } catch (Exception e) {
-//            System.out.println("CANNOT CONNECT " + e);
-//        }
 
         JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
         String file_base = args[0];
