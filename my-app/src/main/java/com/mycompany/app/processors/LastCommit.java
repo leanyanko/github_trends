@@ -19,26 +19,36 @@ public class LastCommit implements Serializable {
 
     public void process (JavaRDD<String> file) {
         try {
-
+            String credentials = "";
             LC_DAO = new PostgresDao(credentials);
-            System.out.println("trying");
-            long millis=System.currentTimeMillis();
-            System.out.println("creating l");
-            LastC l = new LastC("init", new java.sql.Date(millis));
-            System.out.println("l created, saving to db " + l);
-            System.out.println("here is dao " + LC_DAO);
-            LC_DAO.save(l).ifPresent(l::setId);
-
-            LC_DAO.getAll().forEach(System.out::println);
-            l.setRepo("new");
-            LC_DAO.update(l);
-
         } catch (Exception e) {
             System.out.println("CANNOT CONNECT " + e);
         }
-        JavaRDD<String> commits = file.flatMap(s -> Arrays.asList(s.split("\"commit\"")).iterator());
+        JavaRDD<String> commits = file.flatMap(s -> Arrays.asList(s.split("\"commit\":")).iterator());
+        System.out.println("starting to parse");
+//        try {
+            JavaPairRDD<String, Date> lastUpd = commits.mapToPair(commit -> createTuple(commit));
+//        } catch (ParseException p) {
+//            System.out.println(" can not be parsed "  + p);
+//        }
 
-        JavaPairRDD<String, Date> lastUpd = commits.mapToPair(commit -> createTuple(commit));
+        System.out.println("finished parsing");
+        List<Tuple2<String, Date>> tmp = lastUpd.collect();
+
+        for (Tuple2<?, ?> tuple : tmp) {
+            System.out.println(tuple._1() + ": " + tuple._2());
+        }
+
+        List<String> str = commits.collect();
+        int i = 0;
+        for (String s: str) {
+            int l = s.length() > 1000 ? 300 : s.length();
+            System.out.println(s.substring(0, l));
+            i++;
+            if (i > 10) break;
+        }
+
+        //good
         JavaPairRDD<String, Date> filtered = lastUpd.filter(pair -> pair._1() != null && pair._2() != null);
         JavaPairRDD<String, Date> dates = filtered.reduceByKey((Date d1, Date d2) -> (d1.compareTo(d2) > 0 ? d1 : d2));
         List<Tuple2<String, Date>> output = dates.collect();
@@ -50,43 +60,75 @@ public class LastCommit implements Serializable {
 
     }
 
-    private Tuple2<String, Date> createTuple (String commit_initial) {
-        int committerMarker = commit_initial.indexOf("committer");
-        if (committerMarker < 0) return new Tuple2<>(null, null);
-        System.out.println(commit_initial.getClass());
-        String commit = commit_initial.substring(committerMarker);
+    private Tuple2<String, Date> createTuple (String commit_initial) throws ParseException {
 
-        String dateMarker = "\"date\":";
-        int dateMarkerIndex = commit.indexOf(dateMarker);
-        if (dateMarkerIndex < 0) return new Tuple2<>(null, null);
+        int committerMarker = commit_initial.indexOf("\"committer\":");
+//
+//        if (committerMarker < 0) return new Tuple2<>(commit_initial, new Date());
+//
+//        String commit = commit_initial.substring(committerMarker);
+//
+//        String dateMarker = "\"date\":";
+//        int dateMarkerIndex = commit.indexOf(dateMarker);
+//        if (dateMarkerIndex < 0) {
+//            return new Tuple2<>("date",  new Date());
+//        }
+//
+//        commit = commit.substring(dateMarkerIndex + dateMarker.length() + 1);
+//        int quote = commit.indexOf("\"");
+//        if (quote < 0) return new Tuple2<>("kovychka",  new Date());
+//
+//
+//        String dateStr = commit.substring(0, quote);
+//        Date date;
+//        if (dateStr.indexOf("seconds") >= 0 || dateStr.indexOf("\\{") >= 0 || dateStr.equals("")) {
+//            dateMarker = "seconds\":\"";
+//            dateMarkerIndex = commit.indexOf(dateMarker);
+//            commit = commit.substring(dateMarkerIndex + dateMarker.length() + 1);
+//            quote = commit.indexOf("\"");
+//            if (quote < 0)  return new Tuple2<>("kovychka anyway",  new Date());
+//
+//            dateStr = commit.substring(0, quote);
+//
+//            java.util.Date date2 = new java.util.Date(Long.parseLong(dateStr) * 1000);
+//
+//            date = new Date(date2.getTime());
+//
+//        } else if (dateStr.indexOf(",") >= 0) {
+//            return new Tuple2<>(commit, new Date());
+//        }
+//        else {
+//
+////        try {
+//            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//            formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+//            date = formatter.parse(dateStr);
+//        }
+//
+//            String repoMarker = "\"repo_name\":";
+//            int repoIndex = commit.indexOf(repoMarker);
+//            if (repoIndex < 0) {
+//                return new Tuple2<>("repo",  new Date());
+//            }
+//
+//            commit = commit.substring(repoIndex + repoMarker.length() + 1);
+//            char c = commit.charAt(0);
+//            while((c < 'a' && c > 'z') || (c < 'A' && c > 'Z')) {
+//                commit = commit.substring(1);
+//                c = commit.charAt(0);
+//            }
+//            quote = commit.indexOf("\"");
+//            if (quote < 0) return new Tuple2<>("2nd kovych",  new Date());
+//
+//            String repo_name = commit.substring(0, quote);
+//
+//            return new Tuple2<>(repo_name, date);
 
-        commit = commit.substring(dateMarkerIndex + dateMarker.length() + 1);
-        int quoter = commit.indexOf("\"");
-        if (quoter < 0) return new Tuple2<>(null, null);
+//        } catch (ParseException p) {
+//            System.out.println(dateStr + " can not be parsed "  + p);
+//        }
 
-        String dateStr = commit.substring(0, quoter);
-
-        try {
-            SimpleDateFormat formatter = new SimpleDateFormat("yyy-MM-dd HH:mm:ss");
-            formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-            Date date = formatter.parse(dateStr);
-
-            String repoMarker = "\"repo_name\":";
-            int repoIndex = commit.indexOf(repoMarker);
-            if (repoIndex < 0) return new Tuple2<>(null, null);
-
-            commit = commit.substring(repoIndex + repoMarker.length() + 1);
-            quoter = commit.indexOf("\"");
-            if (quoter < 0) return new Tuple2<>(null, null);
-
-            String repo_name = commit.substring(0, quoter);
-            return new Tuple2<>(repo_name, date);
-
-        } catch (ParseException p) {
-            System.out.println(dateStr + " can not be parsed "  + p);
-        }
-
-        return new Tuple2<>(null, null);
+        return new Tuple2<>("something else", null);
     }
 
 
@@ -98,6 +140,6 @@ public class LastCommit implements Serializable {
             LC_DAO.save(l).ifPresent(l::setId);
             System.out.println(tuple._1() + ": " + tuple._2());
         }
-        LC_DAO.getAll().forEach(System.out::println);
+//        LC_DAO.getAll().forEach(System.out::println);
     }
 }

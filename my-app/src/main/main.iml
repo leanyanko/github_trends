@@ -17,5 +17,7 @@
     <orderEntry type="library" name="Maven: com.amazonaws:aws-java-sdk-rekognition:1.11.327" level="project" />
     <orderEntry type="library" name="Maven: com.amazonaws:aws-java-sdk-s3:1.11.327" level="project" />
     <orderEntry type="library" name="Maven: com.amazonaws:aws-java-sdk-core:1.11.327" level="project" />
+    <orderEntry type="library" name="Maven: org.scala-lang.modules:scala-parser-combinators_2.11:1.1.0" level="project" />
+    <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.8.6" level="project" />
   </component>
 </module>

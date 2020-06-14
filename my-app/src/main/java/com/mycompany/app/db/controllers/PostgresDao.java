@@ -103,11 +103,12 @@ public class PostgresDao implements Dao<LastC, Integer> {
                         }
                     }
                 }
-                LOGGER.log(
-                        Level.INFO,
-                        "{0} created successfully? {1}",
-                        new Object[]{nonNullExtention,
-                                (numberOfInsertedRows > 0)});
+                // Too much of info
+//                LOGGER.log(
+//                        Level.INFO,
+//                        "{0} created successfully? {1}",
+//                        new Object[]{nonNullExtention,
+//                                (numberOfInsertedRows > 0)});
             } catch (SQLException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
                 System.out.println(ex);
