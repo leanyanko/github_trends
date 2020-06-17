@@ -3,25 +3,21 @@ package com.mycompany.app.processors;
 import com.google.gson.*;
 import com.mycompany.app.db.Dao;
 import com.mycompany.app.db.controllers.PostgresDao;
-import com.mycompany.app.db.models.LastC;
+import com.mycompany.app.db.models.LastCommitModel;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import scala.Tuple2;
-import scala.util.parsing.json.JSONObject;
 
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class LC implements Serializable {
-    private static Dao<LastC, Integer> LC_DAO;
+public class LastCommitProcessor implements Serializable {
+    private static Dao<LastCommitModel, Integer> LC_DAO;
 
     public void process (JavaRDD<String> file) {
         try {
-            String credentials =
 
             LC_DAO = new PostgresDao(credentials);
         } catch (Exception e) {
@@ -72,12 +68,15 @@ public class LC implements Serializable {
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
 //                date = formatter.parse(d_s);
+                repo_name += " " + d_s;
             }
 
 
             JsonArray rn = c.getAsJsonArray("repo_name");
-            repo_name = rn == null ? "null" : rn.get(0).toString();
-//            return new Tuple2<>(repo_name, date);
+            if (rn != null && rn.size() > 0) {
+                repo_name = rn.get(0).getAsString();
+            }
+//            repo_name = rn == null ? "null" : rn.get(0).toString();
         }
         return new Tuple2<>(repo_name, date);
 
@@ -88,7 +87,7 @@ public class LC implements Serializable {
         for (Tuple2<String, Date> tuple : output) {
             java.util.Date d = tuple._2();
             java.sql.Date sqlDate = new java.sql.Date(d.getTime());
-            LastC l = new LastC(tuple._1(), sqlDate);
+            LastCommitModel l = new LastCommitModel(tuple._1(), sqlDate);
             LC_DAO.save(l).ifPresent(l::setId);
         }
     }

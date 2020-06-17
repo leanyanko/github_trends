@@ -2,20 +2,17 @@ package com.mycompany.app.processors;
 
 import com.mycompany.app.db.Dao;
 import com.mycompany.app.db.controllers.PostgresDao;
-import com.mycompany.app.db.models.LastC;
+import com.mycompany.app.db.models.LastCommitModel;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import scala.Tuple2;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class LastCommit implements Serializable {
-    private static Dao<LastC, Integer> LC_DAO;
+public class LastCommit2 implements Serializable {
+    private static Dao<LastCommitModel, Integer> LC_DAO;
 
     public void process (JavaRDD<String> file) {
         try {
@@ -136,7 +133,7 @@ public class LastCommit implements Serializable {
         for (Tuple2<String, Date> tuple : output) {
             java.util.Date d = tuple._2();
             java.sql.Date sqlDate = new java.sql.Date(d.getTime());
-            LastC l = new LastC(tuple._1(), sqlDate);
+            LastCommitModel l = new LastCommitModel(tuple._1(), sqlDate);
             LC_DAO.save(l).ifPresent(l::setId);
             System.out.println(tuple._1() + ": " + tuple._2());
         }

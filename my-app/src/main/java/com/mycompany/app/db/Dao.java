@@ -1,5 +1,7 @@
 package com.mycompany.app.db;
 
+import com.mycompany.app.db.models.LangModel;
+
 import java.util.Collection;
 import java.util.Optional;
 

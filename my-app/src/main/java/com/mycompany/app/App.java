@@ -4,25 +4,19 @@ import java.io.*;
 
 
 import com.mycompany.app.db.Dao;
-import com.mycompany.app.db.JDBCConnect;
-import com.mycompany.app.db.controllers.PostgresDao;
-import com.mycompany.app.db.models.LastC;
-import com.mycompany.app.processors.LC;
-import com.mycompany.app.processors.LastCommit;
+import com.mycompany.app.db.models.LastCommitModel;
+import com.mycompany.app.processors.LangProcessor;
+import com.mycompany.app.processors.LastCommitProcessor;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-
-import java.sql.Connection;
-import java.util.Date;
-import java.util.Scanner;
 
 /**
  * Hello world!
  *
  */
 public class App  {
-    private static Dao<LastC, Integer> LC_DAO;
+    private static Dao<LastCommitModel, Integer> LC_DAO;
 
     public static void main(String[] args) throws IOException{
         if (args.length < 1) {
@@ -36,20 +30,21 @@ public class App  {
         String file_base = args[0];
 
         JavaRDD<String> lines = sparkContext.textFile(file_base, 1);
-//        for (int i = 3; i < 6; i++) {
-//            String num = i + "";
-//            String next = file_base.substring(0, file_base.length() - num.length()) + num;
-//            JavaRDD<String> line = sparkContext.textFile(next, 1);
-//            lines = lines.union(line);
-//            System.out.println(next);
-//
-//        }
+        for (int i = 3; i < 10; i++) {
+            String num = i + "";
+            String next = file_base.substring(0, file_base.length() - num.length()) + num;
+            JavaRDD<String> line = sparkContext.textFile(next, 1);
+            lines = lines.union(line);
+            System.out.println(next);
+
+        }
 
         System.out.println("================PROCESSING=====================");
 
-//        LastCommit lc = new LastCommit();
-        LC lc = new LC();
+        LastCommitProcessor lc = new LastCommitProcessor();
         lc.process(lines);
+//        LangProcessor langProcessor = new LangProcessor();
+//        langProcessor.process(lines);
 
 
         System.out.println("ended");
