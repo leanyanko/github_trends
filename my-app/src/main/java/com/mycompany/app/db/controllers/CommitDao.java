@@ -12,13 +12,13 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class PostgresDao implements Dao<LastCommitModel, Integer> {
+public class CommitDao implements Dao<LastCommitModel, Integer> {
 
-    private static final Logger LOGGER = Logger.getLogger(PostgresDao.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(CommitDao.class.getName());
 
     private final Optional<Connection> connection;
 
-    public PostgresDao(String credentials) throws ClassNotFoundException {
+    public CommitDao(String credentials) throws ClassNotFoundException {
         String[] db_key = credentials.split(" ");
         this.connection =  Optional.ofNullable(new JDBCConnect().getConnection(db_key[0], db_key[1], db_key[2]));
     }

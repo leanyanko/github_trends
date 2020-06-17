@@ -2,13 +2,14 @@ package com.mycompany.app.processors;
 
 import com.google.gson.*;
 import com.mycompany.app.db.Dao;
-import com.mycompany.app.db.controllers.PostgresDao;
+import com.mycompany.app.db.controllers.CommitDao;
 import com.mycompany.app.db.models.LastCommitModel;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import scala.Tuple2;
 
 import java.io.Serializable;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -16,10 +17,9 @@ import java.util.*;
 public class LastCommitProcessor implements Serializable {
     private static Dao<LastCommitModel, Integer> LC_DAO;
 
-    public void process (JavaRDD<String> file) {
+    public void process (JavaRDD<String> file, String credentials, int num) {
         try {
-
-            LC_DAO = new PostgresDao(credentials);
+            LC_DAO = new CommitDao(credentials);
         } catch (Exception e) {
             System.out.println("CANNOT CONNECT " + e);
         }
@@ -29,15 +29,28 @@ public class LastCommitProcessor implements Serializable {
         //good
         JavaPairRDD<String, Date> filtered = lastUpd.filter(pair -> pair._1() != null && pair._2() != null);
         JavaPairRDD<String, Date> dates = filtered.reduceByKey((Date d1, Date d2) -> (d1.compareTo(d2) > 0 ? d1 : d2));
-        List<Tuple2<String, Date>> output = dates.collect();
+//        List<Tuple2<String, Date>> output = dates.collect();
 
-        writeToDB(output);
+        writeToFile(dates, num);
+//        writeToDB(output);
+//        dates.coalesce(1).saveAsTextFile("s3://aws-emr-resources-440093316175-us-east-1/last_commit" + num + "/");
 //        for (Tuple2<?, ?> tuple : output) {
 //            System.out.println(tuple._1() + ": " + tuple._2());
 //        }
 
     }
 
+    private void writeToFile(JavaPairRDD<String, Date> dates, int num) {
+        JavaPairRDD<String, String> output = dates.mapToPair(pair -> datesToString(pair));
+        output.coalesce(1).saveAsTextFile("s3://aws-emr-resources-440093316175-us-east-1/last_commit" + num);
+    }
+
+    private Tuple2<String, String> datesToString(Tuple2<String, Date> pair) {
+        String pattern = "MM-dd-yyyy";
+        DateFormat df = new SimpleDateFormat(pattern);
+        String sdate = df.format(pair._2());
+        return new Tuple2<String, String>(pair._1(), sdate);
+    }
 
 
     private Tuple2<String, Date> createTuple (String commit) throws ParseException{

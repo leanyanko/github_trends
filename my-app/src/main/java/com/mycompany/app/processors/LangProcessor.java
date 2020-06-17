@@ -22,9 +22,8 @@ public class LangProcessor implements Serializable {
 
     private static Dao<LangModel, Integer> Lang_DAO;
 
-    public void process (JavaRDD<String> file) {
+    public void process (JavaRDD<String> file, String credentials) {
         try {
-
             Lang_DAO = new LanguageDao(credentials);
 
         } catch (Exception e) {

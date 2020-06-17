@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 
 public class LanguageDao implements Dao<LangModel, Integer> {
 
-    private static final Logger LOGGER = Logger.getLogger(PostgresDao.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(CommitDao.class.getName());
 
     private final Optional<Connection> connection;
 
