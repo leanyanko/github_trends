@@ -1,0 +1,6 @@
+.idea/
+target/
+aws
+/src/main/java/com/mycompany/app/db/db_remote
+/src/main/java/com/mycompany/app/db/JDBCConnection.java
+/my-app.iml

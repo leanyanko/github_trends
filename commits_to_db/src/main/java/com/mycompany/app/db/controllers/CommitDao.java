@@ -27,7 +27,7 @@ public class CommitDao implements Dao<LastCommitModel, Integer> {
     public Optional<LastCommitModel> get(int id) {
         return connection.flatMap(conn -> {
             Optional<LastCommitModel> lc = Optional.empty();
-            String sql = "SELECT * FROM last_commit WHERE id = " + id;
+            String sql = "SELECT * FROM all_commits WHERE id = " + id;
 
             try (Statement statement = conn.createStatement();
                  ResultSet resultSet = statement.executeQuery(sql)) {
@@ -52,7 +52,7 @@ public class CommitDao implements Dao<LastCommitModel, Integer> {
     @Override
     public Collection<LastCommitModel> getAll() {
         System.out.println("GETTING ALL DATA FROM TABLE");
-        final String sql = "SELECT * FROM last_commit";
+        final String sql = "SELECT * FROM all_commits";
         final Collection<LastCommitModel> exts = new ArrayList<>();
         connection.ifPresent(conn -> {
             try (Statement statement = conn.createStatement();
@@ -79,7 +79,7 @@ public class CommitDao implements Dao<LastCommitModel, Integer> {
 
     @Override
     public Optional<Integer> save(LastCommitModel lastCommitModel) {
-        final String sql = "INSERT INTO last_commit_new (repo_name, date) VALUES(?, ?)";
+        final String sql = "INSERT INTO all_commits (repo_name, date) VALUES(?, ?)";
         String message = "The customer to be added should not be null";
         LastCommitModel nonNullExtention = Objects.requireNonNull(lastCommitModel, message);
 
@@ -92,7 +92,7 @@ public class CommitDao implements Dao<LastCommitModel, Integer> {
                                  Statement.RETURN_GENERATED_KEYS)) {
 
                 statement.setString(1, nonNullExtention.getRepo());
-                statement.setDate(2, nonNullExtention.getCommit());
+                statement.setDate(2, nonNullExtention.getDate());
                 int numberOfInsertedRows = statement.executeUpdate();
 
                 // Retrieve the auto-generated id
@@ -127,7 +127,7 @@ public class CommitDao implements Dao<LastCommitModel, Integer> {
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
 
                 statement.setString(1, nonNullCustomer.getRepo());
-                statement.setDate(2, nonNullCustomer.getCommit());
+                statement.setDate(2, nonNullCustomer.getDate());
                 statement.setInt(3, nonNullCustomer.getId());
 
                 int numberOfUpdatedRows = statement.executeUpdate();

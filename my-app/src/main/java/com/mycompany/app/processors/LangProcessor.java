@@ -13,10 +13,7 @@ import scala.Tuple2;
 
 import java.io.Serializable;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 
 public class LangProcessor implements Serializable {
 
@@ -31,8 +28,6 @@ public class LangProcessor implements Serializable {
         }
 
         JavaPairRDD<String, Long> lang = file.mapToPair(entry -> parse(entry));
-
-        //good
         JavaPairRDD<String, Long> filtered = lang.filter(pair -> pair._1() != null && pair._2() != null);
         List<Tuple2<String, Long>> output = filtered.collect();
 
@@ -44,13 +39,11 @@ public class LangProcessor implements Serializable {
 
     }
 
-
-
     private Tuple2<String, Long> parse (String entry) throws ParseException {
 
         String repo_name = entry.substring(0, 15);
         long bytes = 0;
-        String lan = "no_lang";
+        String lan = "NO_L_" + (entry.length() > 54 ? entry.substring(0, 55) : entry);
         JsonParser parser = new JsonParser();
 
         JsonElement element = parser.parse(entry);
