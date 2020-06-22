@@ -2,7 +2,7 @@ package com.mycompany.app.db.controllers;
 
 import com.mycompany.app.db.Dao;
 import com.mycompany.app.db.JDBCConnect;
-import com.mycompany.app.db.models.LastC;
+import com.mycompany.app.db.models.LastCommitModel;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,22 +12,22 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class PostgresDao implements Dao<LastC, Integer> {
+public class CommitDao implements Dao<LastCommitModel, Integer> {
 
-    private static final Logger LOGGER =
-            Logger.getLogger(PostgresDao.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(CommitDao.class.getName());
+
     private final Optional<Connection> connection;
 
-    public PostgresDao(String credentials) throws ClassNotFoundException {
-        String[] db_key = credentials.split(" ");
+    public CommitDao(String credentials) throws ClassNotFoundException {
+        String[] db_key = credentials.split("--");
         this.connection =  Optional.ofNullable(new JDBCConnect().getConnection(db_key[0], db_key[1], db_key[2]));
     }
 
     @Override
-    public Optional<LastC> get(int id) {
+    public Optional<LastCommitModel> get(int id) {
         return connection.flatMap(conn -> {
-            Optional<LastC> lc = Optional.empty();
-            String sql = "SELECT * FROM last_commit WHERE id = " + id;
+            Optional<LastCommitModel> lc = Optional.empty();
+            String sql = "SELECT * FROM all_commits WHERE id = " + id;
 
             try (Statement statement = conn.createStatement();
                  ResultSet resultSet = statement.executeQuery(sql)) {
@@ -37,7 +37,7 @@ public class PostgresDao implements Dao<LastC, Integer> {
                     Date date = resultSet.getDate("date");
 
                     lc = Optional.of(
-                            new LastC(id, repo, date));
+                            new LastCommitModel(id, repo, date));
 
                     LOGGER.log(Level.INFO, "Found {0} in database", lc.get());
                 }
@@ -50,10 +50,10 @@ public class PostgresDao implements Dao<LastC, Integer> {
     }
 
     @Override
-    public Collection<LastC> getAll() {
+    public Collection<LastCommitModel> getAll() {
         System.out.println("GETTING ALL DATA FROM TABLE");
-        final String sql = "SELECT * FROM last_commit";
-        final Collection<LastC> exts = new ArrayList<>();
+        final String sql = "SELECT * FROM all_commits";
+        final Collection<LastCommitModel> exts = new ArrayList<>();
         connection.ifPresent(conn -> {
             try (Statement statement = conn.createStatement();
                  ResultSet resultSet = statement.executeQuery(sql)) {
@@ -63,7 +63,7 @@ public class PostgresDao implements Dao<LastC, Integer> {
                     String repo = resultSet.getString("repo_name");
                     Date date = resultSet.getDate("date");
 
-                    final LastC lc = new LastC(id, repo,date);
+                    final LastCommitModel lc = new LastCommitModel(id, repo,date);
 
                     exts.add(lc);
 
@@ -78,10 +78,10 @@ public class PostgresDao implements Dao<LastC, Integer> {
     }
 
     @Override
-    public Optional<Integer> save(LastC lastC) {
-        final String sql = "INSERT INTO last_commit (repo_name, date) VALUES(?, ?)";
+    public Optional<Integer> save(LastCommitModel lastCommitModel) {
+        final String sql = "INSERT INTO all_commits (repo_name, date) VALUES(?, ?)";
         String message = "The customer to be added should not be null";
-        LastC nonNullExtention = Objects.requireNonNull(lastC, message);
+        LastCommitModel nonNullExtention = Objects.requireNonNull(lastCommitModel, message);
 
         return connection.flatMap(conn -> {
             Optional<Integer> generatedId = Optional.empty();
@@ -92,7 +92,7 @@ public class PostgresDao implements Dao<LastC, Integer> {
                                  Statement.RETURN_GENERATED_KEYS)) {
 
                 statement.setString(1, nonNullExtention.getRepo());
-                statement.setDate(2, nonNullExtention.getCommit());
+                statement.setDate(2, nonNullExtention.getDate());
                 int numberOfInsertedRows = statement.executeUpdate();
 
                 // Retrieve the auto-generated id
@@ -103,12 +103,6 @@ public class PostgresDao implements Dao<LastC, Integer> {
                         }
                     }
                 }
-                // Too much of info
-//                LOGGER.log(
-//                        Level.INFO,
-//                        "{0} created successfully? {1}",
-//                        new Object[]{nonNullExtention,
-//                                (numberOfInsertedRows > 0)});
             } catch (SQLException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
                 System.out.println(ex);
@@ -119,9 +113,9 @@ public class PostgresDao implements Dao<LastC, Integer> {
     }
 
     @Override
-    public void update(LastC lc) {
+    public void update(LastCommitModel lc) {
         String message = "The customer to be updated should not be null";
-        LastC nonNullCustomer = Objects.requireNonNull(lc, message);
+        LastCommitModel nonNullCustomer = Objects.requireNonNull(lc, message);
         String sql = "UPDATE last_commit "
                 + "SET "
                 + "repo_name = ?, "
@@ -133,7 +127,7 @@ public class PostgresDao implements Dao<LastC, Integer> {
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
 
                 statement.setString(1, nonNullCustomer.getRepo());
-                statement.setDate(2, nonNullCustomer.getCommit());
+                statement.setDate(2, nonNullCustomer.getDate());
                 statement.setInt(3, nonNullCustomer.getId());
 
                 int numberOfUpdatedRows = statement.executeUpdate();
@@ -148,9 +142,9 @@ public class PostgresDao implements Dao<LastC, Integer> {
     }
 
     @Override
-    public void delete(LastC lc) {
+    public void delete(LastCommitModel lc) {
         String message = "The customer to be deleted should not be null";
-        LastC nonNullCustomer = Objects.requireNonNull(lc, message);
+        LastCommitModel nonNullCustomer = Objects.requireNonNull(lc, message);
         String sql = "DELETE FROM last_commit WHERE id = ?";
 
         connection.ifPresent(conn -> {

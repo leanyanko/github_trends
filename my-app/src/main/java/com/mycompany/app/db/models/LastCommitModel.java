@@ -2,17 +2,17 @@ package com.mycompany.app.db.models;
 
 import java.sql.Date;
 
-public class LastC {
+public class LastCommitModel {
     private Integer id;
     private String repo;
     private Date commit;
 
-    public LastC(String repo, Date commit) {
+    public LastCommitModel(String repo, Date commit) {
         this.repo = repo;
         this.commit = commit;
     }
 
-    public LastC(int id, String repo, Date commit) {
+    public LastCommitModel(int id, String repo, Date commit) {
         this.id = id;
         this.repo = repo;
         this.commit = commit;

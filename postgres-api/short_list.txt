@@ -1,0 +1,10 @@
+JavaScript    | 274118 | import, require 
+TypeScript    | 3191   | import, require
+ Python       | 235964 | import 
+ Java         | 227132 | import
+ C            | 214321 |
+ HTML         | 163819 | <script />
+ Ruby         | 134287 |
+ PHP          | 108917 |
+ C#           |  87880 | 
+ C++          |  82452 | #include
