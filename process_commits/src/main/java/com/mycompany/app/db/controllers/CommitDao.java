@@ -2,7 +2,7 @@ package com.mycompany.app.db.controllers;
 
 import com.mycompany.app.db.Dao;
 import com.mycompany.app.db.JDBCConnect;
-import com.mycompany.app.db.models.LastCommitModel;
+import com.mycompany.app.db.models.CommitModel;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class CommitDao implements Dao<LastCommitModel, Integer> {
+public class CommitDao implements Dao<CommitModel, Integer> {
 
     private static final Logger LOGGER = Logger.getLogger(CommitDao.class.getName());
 
@@ -24,9 +24,9 @@ public class CommitDao implements Dao<LastCommitModel, Integer> {
     }
 
     @Override
-    public Optional<LastCommitModel> get(int id) {
+    public Optional<CommitModel> get(int id) {
         return connection.flatMap(conn -> {
-            Optional<LastCommitModel> lc = Optional.empty();
+            Optional<CommitModel> lc = Optional.empty();
             String sql = "SELECT * FROM all_commits WHERE id = " + id;
 
             try (Statement statement = conn.createStatement();
@@ -37,7 +37,7 @@ public class CommitDao implements Dao<LastCommitModel, Integer> {
                     Date date = resultSet.getDate("date");
 
                     lc = Optional.of(
-                            new LastCommitModel(id, repo, date));
+                            new CommitModel(id, repo, date));
 
                     LOGGER.log(Level.INFO, "Found {0} in database", lc.get());
                 }
@@ -50,10 +50,10 @@ public class CommitDao implements Dao<LastCommitModel, Integer> {
     }
 
     @Override
-    public Collection<LastCommitModel> getAll() {
+    public Collection<CommitModel> getAll() {
         System.out.println("GETTING ALL DATA FROM TABLE");
         final String sql = "SELECT * FROM all_commits";
-        final Collection<LastCommitModel> exts = new ArrayList<>();
+        final Collection<CommitModel> exts = new ArrayList<>();
         connection.ifPresent(conn -> {
             try (Statement statement = conn.createStatement();
                  ResultSet resultSet = statement.executeQuery(sql)) {
@@ -63,7 +63,7 @@ public class CommitDao implements Dao<LastCommitModel, Integer> {
                     String repo = resultSet.getString("repo_name");
                     Date date = resultSet.getDate("date");
 
-                    final LastCommitModel lc = new LastCommitModel(id, repo,date);
+                    final CommitModel lc = new CommitModel(id, repo,date);
 
                     exts.add(lc);
 
@@ -78,10 +78,10 @@ public class CommitDao implements Dao<LastCommitModel, Integer> {
     }
 
     @Override
-    public Optional<Integer> save(LastCommitModel lastCommitModel) {
+    public Optional<Integer> save(CommitModel commitModel) {
         final String sql = "INSERT INTO all_commits_copy (repo_name, date) VALUES(?, ?)";
         String message = "The customer to be added should not be null";
-        LastCommitModel nonNullExtention = Objects.requireNonNull(lastCommitModel, message);
+        CommitModel nonNullExtention = Objects.requireNonNull(commitModel, message);
 
         return connection.flatMap(conn -> {
             Optional<Integer> generatedId = Optional.empty();
@@ -113,9 +113,9 @@ public class CommitDao implements Dao<LastCommitModel, Integer> {
     }
 
     @Override
-    public void update(LastCommitModel lc) {
+    public void update(CommitModel lc) {
         String message = "The customer to be updated should not be null";
-        LastCommitModel nonNullCustomer = Objects.requireNonNull(lc, message);
+        CommitModel nonNullCustomer = Objects.requireNonNull(lc, message);
         String sql = "UPDATE last_commit "
                 + "SET "
                 + "repo_name = ?, "
@@ -142,9 +142,9 @@ public class CommitDao implements Dao<LastCommitModel, Integer> {
     }
 
     @Override
-    public void delete(LastCommitModel lc) {
+    public void delete(CommitModel lc) {
         String message = "The customer to be deleted should not be null";
-        LastCommitModel nonNullCustomer = Objects.requireNonNull(lc, message);
+        CommitModel nonNullCustomer = Objects.requireNonNull(lc, message);
         String sql = "DELETE FROM last_commit WHERE id = ?";
 
         connection.ifPresent(conn -> {

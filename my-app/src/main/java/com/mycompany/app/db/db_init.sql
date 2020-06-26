@@ -134,3 +134,12 @@ select
     from rel_each_lan_b;
 
 \copy percents_per_date_b to '/Users/annaleonenko/percents_per_month_b.csv' delimiter ',' csv header;
+
+
+create table selected as select * from percents_per_date_b where (lang = 'C' or lang = 'C++' or lang = 'C#' or lang = 'Java' or lang = 'JavaScript' or lang = 'Python' or lang = 'Perl' or lang = 'PHP' or lang = 'Go');
+
+
+create table totals as select date, count(date) as total group by date;
+create table selected_total as select selected.date, selected.lang, selected.bytes, selected.per_lang, totals.total, selected.per_lang/totals.total*100 as percent from selected join totals on (totals.date = selected.date);
+
+\copy selected_total to '/Users/annaleonenko/percents_per_month_selected.csv' delimiter ',' csv header;

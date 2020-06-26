@@ -3,23 +3,23 @@ package com.mycompany.app.db.models;
 import java.io.Serializable;
 import java.sql.Date;
 
-public class LastCommitModel implements Serializable {
+public class CommitModel implements Serializable {
     private Integer id;
     private String repo_name;
     private Date date;
     private Integer commits;
 
-    public LastCommitModel(String repo, Date commit) {
+    public CommitModel(String repo, Date commit) {
         this.repo_name = repo;
         this.date = commit;
     }
 
-    public LastCommitModel(String repo, java.util.Date commit) {
+    public CommitModel(String repo, java.util.Date commit) {
         this.repo_name = repo;
         this.date = new java.sql.Date(commit.getTime());
     }
 
-    public LastCommitModel(int id, String repo, Date commit) {
+    public CommitModel(int id, String repo, Date commit) {
         this.id = id;
         this.repo_name = repo;
         this.date = commit;
