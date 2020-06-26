@@ -36,17 +36,17 @@ public class App  {
         String credentials = args[0];
         LastCommitProcessor lc = new LastCommitProcessor(credentials);
 
-        allCommitsToDB(lc, sparkContext, sc);
+        allCommitsToDB(lc, sparkContext, sc, credentials);
         System.out.println("ended");
         sparkContext.stop();
     }
 
-    private static void allCommitsToDB(LastCommitProcessor lc, JavaSparkContext sparkContext, SQLContext sc) {
+    private static void allCommitsToDB(LastCommitProcessor lc, JavaSparkContext sparkContext, SQLContext sc, String credentials) {
         String file_base = "s3://aws-emr-resources-440093316175-us-east-1" + "/all_commits_p_p";
         System.out.println("================READING=====================");
-        JavaRDD<String> lines = sparkContext.textFile(file_base, 1);
+        JavaRDD<String> lines = sparkContext.textFile(file_base + "0/part-00000", 1);
         System.out.println("================PROCESSING=====================");
-        lc.process(lines, sc);
+        lc.process(lines, sc, credentials);
 //        for (int n = 0; n < 1500; n += 100) {
 //            String num = n + "";
 //            String new_base = file_base + num + "/part-00000";
@@ -60,7 +60,7 @@ public class App  {
 //            }
 //
 //            System.out.println("================PROCESSING=====================");
-//            lc.process(lines, sc);
+//            lc.process(lines, sc, credentials);
 //        }
     }
 }

@@ -1,0 +1,1 @@
+Open a new command prompt and now you can start up the Spark shell along with the master’s IP Address.

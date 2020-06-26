@@ -13,6 +13,19 @@
   }
 }
 
+p{
+  padding-top: 10%;;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  margin-left: 0;
+  margin-right: 20%;
+}
+
+.LanguageLife {
+  display: flex;
+  justify-content: center;
+  align-content: center;
+}
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
