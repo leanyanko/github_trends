@@ -19,6 +19,9 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.sum;
+
 public class CommitProcessor implements Serializable {
     private static Dao<CommitModel, Integer> LC_DAO;
     private static final Logger LOGGER = Logger.getLogger(CommitProcessor.class.getName());
@@ -86,6 +89,7 @@ public class CommitProcessor implements Serializable {
         JavaRDD<LangModel> ls = langs_raw.map(line -> parseToLangModel(line));
         Dataset<Row> dls = sc.createDataFrame(ls, LangModel.class);
         dls.registerTempTable("langs");
+        dls.show();
         return dls;
     }
 
@@ -113,9 +117,22 @@ public class CommitProcessor implements Serializable {
         Dataset<Row> per_lang_per_day = sc.sql("SELECT lang, date, count(bytes) as bytes, count(date) as per_lang FROM selected group by lang, date");
         per_lang_per_day.registerTempTable("per_lang_day");
 
-        Dataset<Row> per_lang_per_day_tot = sc.sql("SELECT per_lang_day.*, totals.total, (per_lang_day.per_lang / totals.total)*100 as percents from per_lang_day  join totals on (totals.date = per_lang_day.date)");
+//        Dataset<Row> per_lang_per_day_tot = sc.sql("SELECT per_lang_day.*, totals.total, (per_lang_day.per_lang / totals.total)*100 as percents from per_lang_day  join totals on (totals.date = per_lang_day.date)");
+        Dataset<Row> per_lang_per_day_tot = sc.sql("SELECT per_lang_day.*, totals.total from per_lang_day  join totals on (totals.date = per_lang_day.date)");
+
         per_lang_per_day_tot.show();
         return per_lang_per_day_tot;
+    }
+
+    public Dataset<Row> mergeDS(Dataset<Row> base, Dataset<Row> next) {
+        if (base == null) {
+            return next;
+        }
+        base.union(next);
+//        .agg(sum("amount") as "amount")
+//        base = base.groupBy("date", "lang").sum("per_lang", "total", "bytes");
+        base = base.groupBy("date", "lang").agg(sum("per_lang").as("per_lang"), sum("total").as("total"), sum("bytes").as("bytes"));
+        return base;
     }
 
     private LangModel parseToLangModel(String entry) {

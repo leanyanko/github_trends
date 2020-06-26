@@ -53,53 +53,42 @@ public class App  {
         return dls;
     }
 
-    private static JavaRDD<String> getLangs(JavaSparkContext sparkContext) {
-        String file_base = "s3://aws-emr-resources-440093316175-us-east-1" + "/langs";
-        System.out.println("================READING LANGS=====================");
-        JavaRDD<String> lines = sparkContext.textFile(file_base , 1);
-        return lines;
-    }
-
-    private static void getNumPerDayPerLang(CommitProcessor lc, JavaSparkContext sparkContext, SQLContext sc) {
-        JavaRDD<String> langs = getLangs(sparkContext);
-        String file_base = "s3://aws-emr-resources-440093316175-us-east-1" + "/all_commits_p_p";
-        System.out.println("================READING=====================");
-        JavaRDD<String> lines = sparkContext.textFile(file_base + "0/part-00000", 1);
-        System.out.println("================PROCESSING=====================");
-        JavaPairRDD<String, Date> last = lc.noReduce(lines);
-        lc.process(langs, last, sc);
-    }
 
     private static void processCommitsWithLangs(CommitProcessor lc, JavaSparkContext sparkContext, SQLContext sc) {
         Dataset<Row> langs = getLangs(lc, sparkContext, sc);
         String file_base = "s3://aws-emr-resources-440093316175-us-east-1" + "/all_commits_p_p";
         System.out.println("================READING=====================");
 
-        String new_base = file_base + "0/part-00000";
-        JavaRDD<String> lines = sparkContext.textFile(new_base, 1);
-        System.out.println("================PROCESSING=====================");
+//        String new_base = file_base + "0/part-00000";
+//        JavaRDD<String> lines = sparkContext.textFile(new_base, 1);
+//        System.out.println("================PROCESSING=====================");
 
         Dataset<Row> output = null;
         System.out.println("================CREATING ALL COMMITS TABLE=====================");
         JavaPairRDD<String, Date> piece = null;
-//        for (int n = 0; n < 1500; n += 100) {
-//            String num = n + "";
-//            String new_base = file_base + num + "/part-00000";
-//            JavaRDD<String> lines = sparkContext.textFile(new_base, 1);
+        for (int n = 0; n < 1500; n += 100) {
+            String num = n + "";
+            String new_base = file_base + num + "/part-00000";
+            JavaRDD<String> lines = sparkContext.textFile(new_base, 1);
             for (int i = 1; i < 10; i++) {
-                String num = i + "";
+                num = i + "";
                 String next = new_base.substring(0, new_base.length() - num.length()) + num;
                 lines = sparkContext.textFile(next, 1);
                 lines = lines.union(lines);
                 System.out.println(next);
             }
 //
-//            System.out.println("================PROCESSING=====================");
+            System.out.println("================PROCESSING=====================");
+            JavaPairRDD<String, Date> part = lc.noReduce(lines);
+            output = lc.mergeDS(output, lc.processToDS(langs, part, sc));
+            output.show();
 //            last = last.union(lc.halfReduce(lines));
-//        }
+        }
 //
-        JavaPairRDD<String, Date> part = lc.noReduce(lines);
-        output = lc.processToDS(langs, part, sc);
+//        JavaPairRDD<String, Date> part = lc.noReduce(lines);
+//        output = lc.processToDS(langs, part, sc);
+        output.registerTempTable("pre_final");
+        output = sc.sql("SELECT *, (per_lang / total)*100 as percents FROM pre_final");
         output.coalesce(1).write().format("com.databricks.spark.csv").save("s3://aws-emr-resources-440093316175-us-east-1/all_commits_per_day_test.csv");
 
     }
