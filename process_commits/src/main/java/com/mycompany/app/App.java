@@ -89,7 +89,20 @@ public class App  {
 //        output = lc.processToDS(langs, part, sc);
         output.registerTempTable("pre_final");
         output = sc.sql("SELECT *, (per_lang / total)*100 as percents FROM pre_final");
-        output.coalesce(1).write().format("com.databricks.spark.csv").save("s3://aws-emr-resources-440093316175-us-east-1/all_commits_per_day_test.csv");
-
+        output.registerTempTable("day_final");
+//        output.coalesce(1).write().format("com.databricks.spark.csv").save("s3://aws-emr-resources-440093316175-us-east-1/all_commits_per_day_r.csv");
+//        create table each_lan_per_month as
+//        select lang,
+//        to_char(date,'Mon') as mon,
+//        extract(year from date) as yyyy,
+//        sum("count") as total
+//        from each_lang_per_day
+//        group by 1,2,3
+        Dataset<Row> tot = sc.sql("select to_char(date,'Mon') as mon, extract(year from date) as yyyy, sum(total) as total from day_final group by 1,2");
+        tot.registerTempTable("totals");
+        tot.show();
+        Dataset<Row> per_m = sc.sql("select lang, to_char(date,'Mon') as mon, extract(year from date) as yyyy, sum(per_lang) as per_lang, sum(bytes) as bytes from day_final group by 1,2,3");
+//        per_m.coalesce(1).write().format("com.databricks.spark.csv").save("s3://aws-emr-resources-440093316175-us-east-1/all_commits_per_month.csv");
+        per_m.show();
     }
 }

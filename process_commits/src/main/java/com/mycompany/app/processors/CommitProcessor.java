@@ -40,50 +40,6 @@ public class CommitProcessor implements Serializable {
         return dates;
     }
 
-    public void process (JavaRDD<String> langs_raw,  JavaPairRDD<String, Date> lastCommits, SQLContext sc) {
-
-        LOGGER.log(Level.INFO, "ALL PARSED");
-
-        JavaRDD<CommitModel> cts = lastCommits.map(commit -> new CommitModel(commit._1(), commit._2()));
-
-        JavaRDD<LangModel> ls = langs_raw.map(line -> parseToLangModel(line));
-
-        Dataset<Row> df = sc.createDataFrame(cts, CommitModel.class);
-        df.registerTempTable("all_last_commits");
-        df.show();
-        df.count();
-
-        Dataset<Row> dls = sc.createDataFrame(ls, LangModel.class);
-        dls.registerTempTable("langs");
-        dls.show();
-        LOGGER.log(Level.INFO, "langs" + dls.count());
-        Dataset<Row> date_lang = sc.sql("SELECT all_last_commits.date, all_last_commits.repo, langs.lang, langs.bytes FROM all_last_commits join langs on (langs.repo = all_last_commits.repo)");
-        date_lang.registerTempTable("date_lang");
-        date_lang.show();
-        date_lang.count();
-
-        String lan_select = "where lang = 'C' or lang = 'C++' or lang = 'C#' or lang = 'PHP' or lang = 'Python'";
-        lan_select += " or lang = 'Java' or lang = 'JavaScript' or lang = 'R' or lang = 'Rust'";
-        Dataset<Row> selected = sc.sql("SELECT * FROM date_lang " + lan_select);
-        selected.registerTempTable("selected");
-
-        Dataset<Row> total_per_day = sc.sql("SELECT date, count(date) as total FROM selected group by date");
-        total_per_day.registerTempTable("totals");
-        total_per_day.show();
-        LOGGER.log(Level.INFO, "totals" + total_per_day.count());
-
-        Dataset<Row> per_lang_per_day = sc.sql("SELECT lang, date, count(bytes) as bytes, count(date) as per_lang FROM selected group by lang, date");
-        per_lang_per_day.registerTempTable("per_lang_day");
-        per_lang_per_day.show();
-
-        Dataset<Row> per_lang_per_day_tot = sc.sql("SELECT per_lang_day.*, totals.total, (per_lang_day.per_lang / totals.total)*100 as percents from per_lang_day  join totals on (totals.date = per_lang_day.date)");
-        per_lang_per_day_tot.show();
-
-
-        per_lang_per_day_tot.coalesce(1).write().format("com.databricks.spark.csv").save("s3://aws-emr-resources-440093316175-us-east-1/all_commits_per_day.csv");
-
-    }
-
 
     public Dataset<Row> processLangs(JavaRDD<String> langs_raw, SQLContext sc) {
         JavaRDD<LangModel> ls = langs_raw.map(line -> parseToLangModel(line));
@@ -117,7 +73,6 @@ public class CommitProcessor implements Serializable {
         Dataset<Row> per_lang_per_day = sc.sql("SELECT lang, date, count(bytes) as bytes, count(date) as per_lang FROM selected group by lang, date");
         per_lang_per_day.registerTempTable("per_lang_day");
 
-//        Dataset<Row> per_lang_per_day_tot = sc.sql("SELECT per_lang_day.*, totals.total, (per_lang_day.per_lang / totals.total)*100 as percents from per_lang_day  join totals on (totals.date = per_lang_day.date)");
         Dataset<Row> per_lang_per_day_tot = sc.sql("SELECT per_lang_day.*, totals.total from per_lang_day  join totals on (totals.date = per_lang_day.date)");
 
         per_lang_per_day_tot.show();
@@ -129,8 +84,6 @@ public class CommitProcessor implements Serializable {
             return next;
         }
         base.union(next);
-//        .agg(sum("amount") as "amount")
-//        base = base.groupBy("date", "lang").sum("per_lang", "total", "bytes");
         base = base.groupBy("date", "lang").agg(sum("per_lang").as("per_lang"), sum("total").as("total"), sum("bytes").as("bytes"));
         return base;
     }
