@@ -63,20 +63,14 @@ public class CommitProcessor implements Serializable {
         date_lang.registerTempTable("date_lang");
 
         String lan_select = "where lang = 'C' or lang = 'C++' or lang = 'C#' or lang = 'PHP' or lang = 'Python'";
-        lan_select += " or lang = 'Java' or lang = 'JavaScript' or lang = 'R' or lang = 'Rust'";
+        lan_select += " or lang = 'Java' or lang = 'JavaScript' or lang = 'R' or lang = 'Rust' or lang = 'Perl'";
         Dataset<Row> selected = sc.sql("SELECT * FROM date_lang " + lan_select);
         selected.registerTempTable("selected");
 
-        Dataset<Row> total_per_day = sc.sql("SELECT date, count(date) as total FROM selected group by date");
-        total_per_day.registerTempTable("totals");
 
-        Dataset<Row> per_lang_per_day = sc.sql("SELECT lang, date, count(bytes) as bytes, count(date) as per_lang FROM selected group by lang, date");
-        per_lang_per_day.registerTempTable("per_lang_day");
-
-        Dataset<Row> per_lang_per_day_tot = sc.sql("SELECT per_lang_day.*, totals.total from per_lang_day  join totals on (totals.date = per_lang_day.date)");
-
-        per_lang_per_day_tot.show();
-        return per_lang_per_day_tot;
+        Dataset<Row> per_lang_per_day = sc.sql("SELECT lang, date, sum(bytes) as bytes, count(date) as per_lang FROM selected group by lang, date");
+        per_lang_per_day.show();
+        return per_lang_per_day;
     }
 
     public Dataset<Row> mergeDS(Dataset<Row> base, Dataset<Row> next) {
@@ -84,7 +78,7 @@ public class CommitProcessor implements Serializable {
             return next;
         }
         base.union(next);
-        base = base.groupBy("date", "lang").agg(sum("per_lang").as("per_lang"), sum("total").as("total"), sum("bytes").as("bytes"));
+        base = base.groupBy("date", "lang").agg(sum("per_lang").as("per_lang"), sum("bytes").as("bytes"));
         return base;
     }
 
