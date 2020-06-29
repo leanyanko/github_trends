@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mycompany.app.db.Dao;
 import com.mycompany.app.db.models.CommitModel;
 import com.mycompany.app.db.models.LangModel;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -19,11 +18,9 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.sum;
 
 public class CommitProcessor implements Serializable {
-    private static Dao<CommitModel, Integer> LC_DAO;
     private static final Logger LOGGER = Logger.getLogger(CommitProcessor.class.getName());
 
 
@@ -45,7 +42,7 @@ public class CommitProcessor implements Serializable {
         JavaRDD<LangModel> ls = langs_raw.map(line -> parseToLangModel(line));
         Dataset<Row> dls = sc.createDataFrame(ls, LangModel.class);
         dls.registerTempTable("langs");
-        dls.show();
+//        dls.show();
         return dls;
     }
 
@@ -56,8 +53,8 @@ public class CommitProcessor implements Serializable {
 
         Dataset<Row> df = sc.createDataFrame(cts, CommitModel.class);
         df.registerTempTable("all_commits");
-        df.show();
-        df.count();
+//        df.show();
+//        df.count();
 
         Dataset<Row> date_lang = sc.sql("SELECT all_commits.date, all_commits.repo, langs.lang, langs.bytes FROM all_commits join langs on (langs.repo = all_commits.repo)");
         date_lang.registerTempTable("date_lang");
@@ -69,7 +66,7 @@ public class CommitProcessor implements Serializable {
 
 
         Dataset<Row> per_lang_per_day = sc.sql("SELECT lang, date, sum(bytes) as bytes, count(date) as per_lang FROM selected group by lang, date");
-        per_lang_per_day.show();
+//        per_lang_per_day.show();
         return per_lang_per_day;
     }
 
@@ -124,7 +121,6 @@ public class CommitProcessor implements Serializable {
 
 
     private Tuple2<String, Long> parseLangs (String entry) throws ParseException {
-
         String repo_name = entry.substring(0, 15);
         long bytes = 0;
         String lan = "NO_L_" + (entry.length() > 54 ? entry.substring(0, 55) : entry);
