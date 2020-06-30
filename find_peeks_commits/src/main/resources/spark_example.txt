@@ -1,0 +1,19 @@
+Let's now build the project using Maven to generate apache-spark-1.0-SNAPSHOT.jar in the target folder.
+
+Next, we need to submit this WordCount job to Spark:
+
+1
+2
+3
+${spark-install-dir}/bin/spark-submit --class com.baeldung.WordCount 
+  --master local ${WordCount-MavenProject}/target/apache-spark-1.0-SNAPSHOT.jar
+  ${WordCount-MavenProject}/src/main/resources/spark_example.txt
+Spark installation directory and WordCount Maven project directory needs to be updated before running above command.
+
+On submission couple of steps happens behind the scenes:
+
+From the driver code, SparkContext connects to cluster manager(in our case spark standalone cluster manager running locally)
+Cluster Manager allocates resources across the other applications
+Spark acquires executors on nodes in the cluster. Here, our word count application will get its own executor processes
+Application code (jar files) is sent to executors
+Tasks are sent by the SparkContext to the executors.

@@ -1,10 +1,25 @@
-# What technology is trending on a github? What language is popular? For how long?
+# GitSee by Anna Leonenko
 
-## Let's explore
+## InsightDataScience Data Engineering project
+
+## What technology is trending on a github? What language is popular? For how long?
+
+# [Demo: datathing.xyz](https://datathing.xyz)
+
+# Let's explore. Detailed filesystem is below the illustrations.
+
+![Illustration](https://github.com/meinou/github_trends/screenshots/illustration)
 
 ## To start: here is a structure of the repo, it consists of multiple maven projects which compile to separate jars for each application stage
+
 ├── README.md
+
+### screenshots for readme
+
+├── screenshots 
+
 ### third stage - already processes commits to DataBase
+
 ├── commits_to_db  
 │   ├── example.txt
 │   ├── pom.xml
@@ -37,6 +52,7 @@
 │           │               ├── AppTest.java
 │           │               └── TransformerTest.java
 │           └── test.iml
+
 ### First stage: reprocessing of all commits to temporary files on S3
 ├── commits_to_file
 │   ├── example.txt
