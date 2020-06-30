@@ -1,15 +1,6 @@
 package com.mycompany.app;
 
 import java.io.*;
-import java.sql.Connection;
-import java.util.Optional;
-
-
-import com.mycompany.app.db.Dao;
-import com.mycompany.app.db.JDBCConnect;
-import com.mycompany.app.db.models.LastCommitModel;
-import com.mycompany.app.processors.FieldIdProcessor;
-import com.mycompany.app.processors.LangProcessor;
 import com.mycompany.app.processors.LastCommitProcessor;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
@@ -21,7 +12,6 @@ import org.apache.spark.api.java.JavaSparkContext;
  *
  */
 public class App  {
-    private static Dao<LastCommitModel, Integer> LC_DAO;
 
     public static void main(String[] args) throws IOException {
 
@@ -40,7 +30,7 @@ public class App  {
 
             String num = n + "";
             String next = file_base.substring(0, file_base.length() - num.length()) + num;
-            JavaRDD<String> lines = sparkContext.textFile(file_base, 1);
+            JavaRDD<String> lines = sparkContext.textFile(next, 1);
 
             for (int i = n + 1; i < n + 100; i++) {
                 if (i > 1498) break;

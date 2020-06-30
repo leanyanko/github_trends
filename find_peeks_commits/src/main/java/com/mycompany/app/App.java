@@ -44,27 +44,36 @@ public class App  {
 
     private static void processCommitsWithLangs(CommitProcessor lc, JavaSparkContext sparkContext, SQLContext sc) {
         Dataset<Row> langs = getLangs(lc, sparkContext, sc);
-        String file_base = "s3://aws-emr-resources-440093316175-us-east-1" + "/new_all_commits_";
+        String file_base = "s3://aws-emr-resources-440093316175-us-east-1" + "/all_commits_p_p";
+//        System.err.println("================READING=====================");
+
+        String new_base = file_base + "0/part-00000";
+        JavaRDD<String> lines = sparkContext.textFile(new_base, 1);
+        System.err.println("================PROCESSING=====================");
+        System.err.println(lines.count());
 
         Dataset<Row> output = null;
-
-        System.out.println("================CREATING ALL COMMITS TABLE=====================");
-        JavaPairRDD<String, Date> piece = null;
-        for (int n = 0; n < 1500; n += 100) {
-            String num = n + "";
-            String new_base = file_base + num + "/part-00000";
-            JavaRDD<String> lines = sparkContext.textFile(new_base, 1);
-            for (int i = 1; i < 10; i++) {
-                num = i + "";
-                String next = new_base.substring(0, new_base.length() - num.length()) + num;
-                lines = lines.union(sparkContext.textFile(next, 1));
-                System.out.println(next);
-            }
-            System.out.println("================PROCESSING=====================");
-            JavaPairRDD<String, Date> part = lc.noReduce(lines);
-            output = lc.mergeDS(output, lc.processToDS(langs, part, sc));
-        }
-
+//
+//        System.out.println("================CREATING ALL COMMITS TABLE=====================");
+//        JavaPairRDD<String, Date> piece = null;
+//        for (int n = 0; n < 1500; n += 100) {
+//            String num = n + "";
+//            String new_base = file_base + num + "/part-00000";
+//            JavaRDD<String> lines = sparkContext.textFile(new_base, 1);
+//            for (int i = 1; i < 10; i++) {
+//                num = i + "";
+//                String next = new_base.substring(0, new_base.length() - num.length()) + num;
+//                lines = lines.union(sparkContext.textFile(next, 1));
+//                System.out.println(next);
+//            }
+//
+//            System.out.println("================PROCESSING=====================");
+//            JavaPairRDD<String, Date> part = lc.noReduce(lines);
+//            output = lc.mergeDS(output, lc.processToDS(langs, part, sc));
+//        }
+//
+        JavaPairRDD<String, Date> part = lc.noReduce(lines);
+        output = lc.processToDS(langs, part, sc);
         output.registerTempTable("pre_final");
 
         Dataset<Row> tot = sc.sql("select extract(month from date) as month, extract(year from date) as year, sum(per_lang) as total from pre_final group by 1,2");

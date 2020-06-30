@@ -93,21 +93,10 @@ public class CommitProcessor implements Serializable {
             JsonArray lan_info = c.getAsJsonArray("language");
 
             if (lan_info != null && lan_info.size() > 0) {
-                long maxBytes = Integer.MIN_VALUE;
-                for (int i = 0; i < lan_info.size(); i++) {
-                    JsonObject info = lan_info.get(i).getAsJsonObject();
-                    String b = info.get("bytes").getAsString();
-                    Long tmp_bytes = Long.parseLong(b);
-                    if (tmp_bytes > maxBytes) {
-                        maxBytes = tmp_bytes;
-                        bytes = tmp_bytes;
-                        lan = info.get("name").getAsString();
-                    }
-//                    lan = info.get("name").getAsString();
-//                    String b = info.get("bytes").getAsString();
-//                    bytes = Long.parseLong(b);
-                }
-
+                JsonObject info = lan_info.get(0).getAsJsonObject();
+                lan = info.get("name").getAsString();
+                String b = info.get("bytes").getAsString();
+                bytes = Long.parseLong(b);
             }
         }
         return new LangModel(repo_name, lan, bytes);

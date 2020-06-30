@@ -18,17 +18,9 @@ public class LastCommitProcessor implements Serializable {
 
     public void process (JavaRDD<String> file, int num) {
         LOGGER.log(Level.INFO, "PARSING");
-        JavaPairRDD<String, String> lastUpd = file.mapToPair(commit -> createTuple(commit));
+        JavaPairRDD<String, String> lastUpd = file.mapToPair(commit -> createTuple(commit)).repartition(10);
         LOGGER.log(Level.INFO, "WRITING TO FILE");
-        lastUpd.saveAsTextFile("s3://aws-emr-resources-440093316175-us-east-1/all_commits" + num);
-    }
-
-
-    private Tuple2<String, String> datesToString(Tuple2<String, Date> pair) {
-        String pattern = "MM-dd-yyyy";
-        DateFormat df = new SimpleDateFormat(pattern);
-        String sdate = df.format(pair._2());
-        return new Tuple2<String, String>(pair._1(), sdate);
+        lastUpd.saveAsTextFile("s3://aws-emr-resources-440093316175-us-east-1/new_all_commits_" + num);
     }
 
 
