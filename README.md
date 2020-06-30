@@ -18,20 +18,20 @@
 
 ├── screenshots 
 
-### third stage - already processes commits to DataBase
-![Illustration2](https://github.com/meinou/github_trends/blob/master/screenshots/commits_to_db.png)
-
 ### First stage: reprocessing of all commits to temporary files on S3
 ![Illustration3](https://github.com/meinou/github_trends/blob/master/screenshots/commits_to_file.png)
+
+### Second stage: calculation, aggregation, creating CSV files for tableau
+![Illustration5](https://github.com/meinou/github_trends/blob/master/screenshots/process_commits.png)
+
+### Third stage - already processes commits to DataBase
+![Illustration2](https://github.com/meinou/github_trends/blob/master/screenshots/commits_to_db.png)
 
 ### Initial app (not used anymore), but contains all necessary DAO's and parsers for possible additional processing if needed
 ![Illustration4](https://github.com/meinou/github_trends/blob/master/screenshots/full.png)
 
 ### Node.js application with API for db if to use custom frontend
 ├── postgres-api
-
-### Second stage: calculation, aggregation, creating CSV files for tableau
-![Illustration5](https://github.com/meinou/github_trends/blob/master/screenshots/process_commits.png)
 
 ### Frontend
 └── visual
