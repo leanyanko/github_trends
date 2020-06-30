@@ -22,10 +22,15 @@
 
 ├── commits_to_db  
 │   ├── example.txt
+
 │   ├── pom.xml
+
 │   └── src
+
 │       ├── main
+
 │       │   ├── java
+
 │       │   │   └── com
 │       │   │       └── mycompany
 │       │   │           └── app
